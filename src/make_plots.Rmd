@@ -1,0 +1,70 @@
+---
+title: "Make plots"
+output: html_document
+date: "2023-02-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(magick)
+
+setwd(here::here('output'))
+
+tsne_list <- readr::read_rds('tsne_list.rds')
+umap_list <- readr::read_rds('umap_list.rds')
+```
+First, we make the images.
+
+```{r}
+count <- 0
+for(i in tsne_list) {
+    count <- count + 1
+    p <- ggplot(i, aes(x = tsne1, y = tsne2)) + geom_point()
+    outfile <- paste0('plot', count)
+    setwd(here::here("output", "tsne_plots"))
+    ggsave(plot = p, filename = outfile, device = "png")
+}
+```
+
+```{r}
+count <- 0
+for(i in umap_list) {
+    count <- count + 1
+    p <- ggplot(i, aes(x = umap1, y = umap2)) + geom_point()
+    outfile <- paste0('plot', count)
+    setwd(here::here("output", "umap_plots"))
+    ggsave(plot = p, filename = outfile, device = "png")
+}
+```
+
+
+```{r}
+MakeGif <- function(in_dir, outfile) {
+    ## list file names and read in
+    imgs <- list.files(in_dir, full.names = TRUE)
+    img_list <- lapply(imgs, image_read)
+
+    ## join the images together
+    img_joined <- image_join(img_list)
+
+    ## animate at 2 frames per second
+    img_animated <- image_animate(img_joined, fps = 5)
+
+    ## save to disk
+    image_write(image = img_animated,
+            path = outfile)
+}
+```
+
+```{r}
+MakeGif(in_dir = here::here("output", "tsne_plots"), outfile = "tsne.gif")
+MakeGif(in_dir = here::here("output", "umap_plots"), outfile = "umap.gif")
+```
+
+
+

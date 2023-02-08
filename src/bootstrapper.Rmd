@@ -1,0 +1,56 @@
+---
+title: "Bootstrapper"
+output: html_document
+date: "2023-02-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this markdown is to run non-linear dimension reduction algorithms on CyTOF data many many times to see what it looks like in a gif.
+
+```{r}
+library(tidyverse)
+library(here)
+library(flowCore)
+setwd(here::here('data', 'marie_cytof'))
+set.seed(1)
+
+# Read in the cells
+cells <- flowCore::read.FCS(list.files(pattern = "SLE")) # Data from Marie Burns
+params <- as.vector(Biobase::pData(parameters(cells))$desc)
+colnames(cells) <- params
+cells <- exprs(cells) 
+cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
+cells <- asinh(cells/5) %>% as_tibble()
+cells <- cells[sample(nrow(cells), 1000),]
+cells
+```
+
+```{r}
+library(umap)
+library(Rtsne)
+
+num_times <- 100
+umap_list <- lapply(seq(num_times), function(i) {
+    result <- umap::umap(cells, preserve.seed = FALSE)$layout %>% as_tibble()
+    names(result) <- c("umap1", "umap2")
+    return(result)
+})
+
+tsne_list <- lapply(seq(num_times), function(i) {
+    result <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
+    names(result) <- c("tsne1", "tsne2")
+    return(result)
+})
+```
+
+```{r}
+setwd(here::here("output"))
+saveRDS(umap_list, "umap_list.rds")
+saveRDS(tsne_list, "tsne_list.rds")
+```
+
+
+

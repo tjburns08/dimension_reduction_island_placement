@@ -1,0 +1,59 @@
+---
+title: "Make conjoined plots"
+output: html_document
+date: "2023-02-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(magick)
+
+setwd(here::here('output'))
+
+tsne_list <- readr::read_rds('tsne_list.rds')
+umap_list <- readr::read_rds('umap_list.rds')
+```
+
+```{r}
+library(gridExtra)
+
+count <- 0
+for(i in seq(length(tsne_list))) {
+    count <- count + 1
+    p1 <- ggplot(tsne_list[[i]], aes(x = tsne1, y = tsne2)) + geom_point() + ggtitle("t-SNE")
+    p2 <- ggplot(umap_list[[i]], aes(x = umap1, y = umap2)) + geom_point() + ggtitle("UMAP")
+    p_merge <- gridExtra::grid.arrange(p1, p2, ncol = 2)
+    
+    outfile <- paste0('plot', count)
+    setwd(here::here("output", "merged_plots"))
+    ggsave(plot = p_merge, filename = outfile, device = "png")
+}
+```
+
+```{r}
+MakeGif <- function(in_dir, outfile, fps = 2) {
+    ## list file names and read in
+    imgs <- list.files(in_dir, full.names = TRUE)
+    img_list <- lapply(imgs, image_read)
+
+    ## join the images together
+    img_joined <- image_join(img_list)
+
+    ## animate at 2 frames per second
+    img_animated <- image_animate(img_joined, fps)
+
+    ## save to disk
+    image_write(image = img_animated,
+            path = outfile)
+}
+```
+
+```{r}
+MakeGif(in_dir = here::here('output', 'merged_plots'), outfile = "tsne_and_umap.gif", fps = 5) 
+```
+
