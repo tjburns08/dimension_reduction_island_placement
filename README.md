@@ -20,5 +20,7 @@ Takes the images produced in make_plots.Rmd, and orders them based on similarity
 ## Example
 Below is the output of make_conjoined_plots.Rmd.
 
+![](tsne_and_umap.gif)
+
 ## Acknowledgements
 Marie Burns for allowing me to use her CyTOF data. Mike Leipold for giving me the idea to produce image_ordering.Rmd. 
