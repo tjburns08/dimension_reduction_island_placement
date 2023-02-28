@@ -1,4 +1,4 @@
-## Dimension reduction bootstrapping
+## Dimension reduction serial runs
 
 ## Description
 This project asks the following question: if you run t-SNE or UMAP over and over for 100 times or more, how different does each map look from each other map? Is each map radically different? Is each map similar? Are there "pockets" of stability?
