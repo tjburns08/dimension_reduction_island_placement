@@ -1,7 +1,7 @@
 ---
 title: "Image ordering"
 output: html_document
-date: "2023-02-09"
+date: "2023-02-09 - 2025-02-04"
 ---
 
 ```{r setup, include=FALSE}
@@ -10,11 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Here, we are going to implement image comparisons with Magick. Let's start with two images and see if we can get some sort of value.
 
+We will set a term at the top that will denote whether the user wants to order and produce a gif from which folder.
+
+```{r}
+# Options: tsne_plots, umap_plots, merged_plots
+out_folder <- "merged_plots"
+```
+
 ```{r}
 library(tidyverse)
 library(here)
 library(magick)
-setwd(here::here('output', 'tsne_plots'))
+setwd(here::here('output', out_folder))
 
 im1 <- magick::image_read('plot1')
 im2 <- magick::image_read('plot2')
@@ -24,10 +31,11 @@ magick::image_compare_dist(image = im1, reference_image = im2, metric = 'RMSE')
 
 magick::metric_types()
 ```
+
 Now we're going to make a similarity matrix. Note that we make the image data much smaller. 
 
 ```{r}
-setwd(here::here('output', 'tsne_plots'))
+setwd(here::here('output', out_folder))
 files <- list.files()
 
 ImageDistance <- function(im1, im2, metric = "MSE") {
@@ -64,15 +72,14 @@ Now let's visualize as a heatmap.
 library(pheatmap)
 ph <- pheatmap::pheatmap(distances)
 ```
+
 ```{r}
-setwd(here::here('output', 'tsne_plots'))
-files <- list.files()
+files <- list.files(here::here("output", out_folder))
 new_order <- files[ph$tree_row$order]
-#new_order <- sort(distances[1,]) %>% names()
-new_order <- paste0("/Users/tylerburns/Documents/projects/dimr_bootstrap/output/tsne_plots/", new_order)
+new_order <- paste0(here::here("output", out_folder), "/", new_order)
 ```
 
-Now we make the gif based on that new order.
+Now we make the gif based on that new order. We note that in the contexting of producing the tsne-umap merged plots, the order of the umap does not matter so much, so we work directly in the merged images and just get the t-sne in the right order.
 
 ```{r}
 MakeGif <- function(in_dir, outfile, fps = 5) {
@@ -93,7 +100,8 @@ MakeGif <- function(in_dir, outfile, fps = 5) {
             path = outfile)
 }
 
-MakeGif(in_dir = here::here('output', 'tsne_plots'), outfile = "ordered_tsne.gif", fps = 5) 
+out_file <- paste0("ordered_", out_folder, ".gif")
+MakeGif(in_dir = here::here('output', out_folder), outfile = out_file, fps = 5) 
 ```
 
 
